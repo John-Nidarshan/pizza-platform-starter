@@ -1,0 +1,18 @@
+# .NET
+**/bin/
+**/obj/
+**/.vs/
+**/Migrations/*Designer.cs.tmp
+*.user
+*.suo
+
+# Angular / Node
+node_modules/
+dist/
+.angular/
+
+# Local secrets and environment
+.env
+.env.*
+!.env.example
+appsettings.Development.json
