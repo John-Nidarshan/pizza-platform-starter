@@ -8,7 +8,7 @@ variables:
   buildConfiguration: 'Release'
   projectPath: 'backend/PizzaShop.Api/PizzaShop.Api.csproj'
   azureServiceConnection: 'PizzaShop-Azure-Connection'
-  appServiceName: 'your-api-app-service-name'
+  appServiceName: 'pizzaAPP'
 
 steps:
 - task: UseDotNet@2
