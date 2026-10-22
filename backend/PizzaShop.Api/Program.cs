@@ -1,11 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using PizzaShop.Api.Data;
+using PizzaShop.Api.Hubs;
 using PizzaShop.Api.Models;
 using System.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.UseUrls("http://localhost:5080");
 builder.Services.AddControllers();
+builder.Services.AddSignalR();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -20,7 +22,7 @@ if (string.IsNullOrWhiteSpace(connectionString))
 
 builder.Services.AddDbContext<PizzaShopDbContext>(options => options.UseSqlServer(connectionString));
 builder.Services.AddCors(options => options.AddPolicy("AngularFrontend", policy =>
-    policy.WithOrigins("http://localhost:4200").AllowAnyHeader().AllowAnyMethod()));
+    policy.WithOrigins("http://localhost:4200").AllowAnyHeader().AllowAnyMethod().AllowCredentials()));
 
 var app = builder.Build();
 app.UseCors("AngularFrontend");
@@ -45,6 +47,7 @@ app.UseCors("AngularFrontend");
     }
 app.MapGet("/api/health", () => Results.Ok(new { status = "ok", mode = "sql-server-code-first" }));
 app.MapControllers();
+app.MapHub<OrderHub>("/hubs/orders");
 
 // Local development convenience: applies checked-in migrations and inserts starter data.
 // Generate the first migration with `dotnet ef migrations add InitialCreate` before first run.
