@@ -72,4 +72,61 @@ public class OrderService : IOrderService
         return await _db.Orders.AsNoTracking().Include(x => x.Items)
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
+
+    public async Task<List<Order>> GetOrdersAsync(CancellationToken cancellationToken = default)
+    {
+        return await _db.Orders.AsNoTracking()
+            .Include(x => x.Items)
+            .OrderByDescending(x => x.CreatedAtUtc)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<Order?> ConfirmCounterPaymentAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var order = await _db.Orders.Include(x => x.Items)
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+        if (order is null)
+            return null;
+        if (!string.Equals(order.PaymentMethod, "counter", StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException("Only counter-payment orders can be manually confirmed.");
+        if (order.PaymentStatus != "Unpaid" || order.OrderStatus != "AwaitingCounterPayment")
+            throw new InvalidOperationException("This order is not awaiting counter payment.");
+
+        order.PaymentStatus = "Paid";
+        order.OrderStatus = "Preparing";
+        order.Payments.Add(new Payment
+        {
+            Provider = "Counter",
+            Amount = order.Total,
+            Status = "Paid",
+            CreatedAtUtc = DateTime.UtcNow
+        });
+        await _db.SaveChangesAsync(cancellationToken);
+
+        return order;
+    }
+
+    public async Task<Order?> UpdateOrderStatusAsync(
+        Guid id,
+        string status,
+        CancellationToken cancellationToken = default)
+    {
+        var order = await _db.Orders.Include(x => x.Items)
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+        if (order is null)
+            return null;
+        if (order.PaymentStatus != "Paid")
+            throw new InvalidOperationException("Payment must be confirmed before preparing an order.");
+
+        var validTransition =
+            (order.OrderStatus == "Preparing" && status == "Ready") ||
+            (order.OrderStatus == "Ready" && status == "Completed");
+        if (!validTransition)
+            throw new InvalidOperationException($"Order status cannot change from {order.OrderStatus} to {status}.");
+
+        order.OrderStatus = status;
+        await _db.SaveChangesAsync(cancellationToken);
+
+        return order;
+    }
 }

@@ -1,0 +1,104 @@
+<header class="topbar">
+  <a class="brand" href="#top"><span class="brand-mark">S</span> SLICE<span class="brand-dot">CLUB</span></a>
+  <div class="table-pill" *ngIf="tableNumber !== null">
+  ● TABLE {{ tableNumber }}
+  <span *ngIf="tableStatus === 'checking'"> · Checking…</span>
+  </div>
+  <button class="basket-button" (click)="showBasket = !showBasket">Your order <span>{{ itemCount }}</span></button>
+</header>
+
+<main id="top">
+  <section class="table-picker" *ngIf="tableNumber === null">
+  <h2>Select your table</h2>
+  <p>Choose your table number to start your order.</p>
+
+  <div class="table-options">
+    <button
+      *ngFor="let table of tables"
+      type="button"
+      (click)="selectTable(table)">
+      {{ table }}
+    </button>
+  </div>
+
+  <p class="demo-warning" *ngIf="tableStatus === 'invalid'">
+    The table number in this QR code is invalid. Please select your table.
+  </p>
+</section>
+
+  <section class="hero">
+    <div class="hero-copy">
+      <div class="eyebrow">GOOD TIMES. GREAT SLICES.</div>
+      <h1>BIG FLAVOUR.<br><span>NO WAITING.</span></h1>
+      <p>Freshly made, straight from our oven to your table. Build your order and we'll take care of the rest.</p>
+      <a class="hero-cta" href="#menu">LET'S EAT <span>↓</span></a>
+      <div class="hero-note">🔥 Made fresh when you order</div>
+    </div>
+    <div class="hero-art">
+      <div class="burst">HOT<br> &amp; FRESH</div>
+      <div class="pizza-emoji">🍕</div>
+      <div class="art-caption">THE CROWD<br>PLEASER.</div>
+    </div>
+  </section>
+  <section class="menu-section" id="menu">
+    <div class="section-heading">
+      <div><div class="eyebrow dark">THE GOOD STUFF</div><h2>Pick your <span>favourite.</span></h2></div>
+      <p>Big cravings deserve big flavour.</p>
+    </div>
+    <nav class="categories">
+      <button *ngFor="let c of categories" [class.active]="category === c" (click)="category = c">{{ c }}</button>
+    </nav>
+    <div class="menu-grid">
+      <article class="menu-card" *ngFor="let item of filteredMenu">
+        <div class="food-art" [attr.data-category]="item.category"><span>{{ item.emoji }}</span><label>MADE FRESH</label></div>
+        <div class="food-info">
+          <div class="food-title"><h3>{{ item.name }}</h3><strong>£{{ item.price.toFixed(2) }}</strong></div>
+          <p>{{ item.description }}</p>
+          <button class="add-button" (click)="add(item)">ADD TO ORDER <span>+</span></button>
+        </div>
+      </article>
+    </div>
+    <div class="empty" *ngIf="loadingMenu">Loading today's menu…</div>
+    <div class="empty" *ngIf="!loadingMenu && menuError">{{ menuError }}</div>
+    <div class="empty" *ngIf="!loadingMenu && !menuError && !filteredMenu.length">No items are available in this category.</div>
+  </section>
+  <section class="bottom-banner"><span>🍕</span><div><h2>Good food. Good mood.</h2><p>Made with love, served with a smile.</p></div><span>✌️</span></section>
+</main>
+
+<div class="drawer-backdrop" *ngIf="showBasket" (click)="showBasket = false"></div>
+<aside class="basket-drawer" *ngIf="showBasket">
+  <div class="drawer-heading">
+    <div><div class="eyebrow dark">YOUR TABLE ORDER</div><h2>Let's make it official.</h2></div>
+    <button class="close" (click)="showBasket = false">×</button>
+  </div>
+  <div class="basket-lines" *ngIf="basket.length; else emptyBasket">
+    <div class="basket-line" *ngFor="let line of basket">
+      <div>
+        <strong>{{ line.item.name }}</strong>
+        <small>£{{ line.item.price.toFixed(2) }} each</small>
+        <div class="qty">
+          <button (click)="change(line.item.id, -1)">−</button>
+          <span>{{ line.quantity }}</span>
+          <button (click)="change(line.item.id, 1)">+</button>
+        </div>
+      </div>
+      <strong>£{{ (line.item.price * line.quantity).toFixed(2) }}</strong>
+    </div>
+  </div>
+  <ng-template #emptyBasket><p class="empty-basket">Your basket's looking a little empty. Add a slice!</p></ng-template>
+  <div class="checkout-area">
+    <div class="total"><span>Subtotal</span><strong>£{{ total.toFixed(2) }}</strong></div>
+    <h3 class="payment-heading">How would you like to pay?</h3>
+    <div class="payment-options">
+      <button [class.selected]="paymentMethod === 'online'" (click)="paymentMethod = 'online'">💳 Pay online <small>Card / digital wallet</small></button>
+      <button [class.selected]="paymentMethod === 'counter'" (click)="paymentMethod = 'counter'">🏪 Pay at counter <small>Pay staff in person</small></button>
+    </div>
+    <p class="payment-note">{{ paymentMethod === 'online' ? 'Online checkout is not configured yet. This creates an unpaid order draft only.' : 'Pay the staff at the counter. Your order remains unpaid until staff confirm payment.' }}</p>
+    <p class="demo-warning" *ngIf="tableStatus === 'invalid'">This table number is not active. Please scan the QR code at your table.</p>
+    <button class="checkout-button" [disabled]="!basket.length || submitting || tableStatus !== 'valid'" (click)="placeOrder()">{{ submitting ? 'CREATING ORDER…' : 'PLACE ORDER →' }}</button>
+    <p class="demo-warning" *ngIf="message">{{ message }}</p>
+    <small>Table {{ tableNumber }} · Dine-in only</small>
+  </div>
+</aside>
+
+<footer>SLICE CLUB © 2026 <span>GOOD PIZZA. GOOD PEOPLE.</span></footer>

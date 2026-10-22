@@ -1,0 +1,93 @@
+<header class="admin-header">
+  <a class="admin-brand" routerLink="/">SLICE<span>CLUB</span></a>
+  <div class="connection-indicator" [class]="connectionState">
+    <span class="connection-dot"></span>
+    {{ connectionState === 'live' ? 'Live updates on' : connectionState === 'reconnecting' ? 'Reconnecting…' : connectionState === 'connecting' ? 'Connecting…' : 'Offline' }}
+  </div>
+</header>
+
+<main class="admin-main">
+  <section class="admin-title">
+    <div>
+      <p class="eyebrow">SLICE CLUB · OPERATIONS</p>
+      <h1>Orders</h1>
+      <p class="subtitle">Track payment and kitchen progress as orders come in.</p>
+    </div>
+    <button class="refresh-button" type="button" (click)="loadOrders()">Refresh orders</button>
+  </section>
+
+  <p class="prototype-notice">
+    Development admin: order actions are currently unauthenticated. Do not expose this API publicly.
+  </p>
+
+  <div class="connection-warning" *ngIf="connectionError">
+    <span>{{ connectionError }}</span>
+    <button type="button" (click)="retryConnection()">Reconnect</button>
+  </div>
+  <div class="error-banner" role="alert" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+  <nav class="order-filters" aria-label="Filter orders">
+    <button type="button" [class.active]="filter === 'all'" (click)="filter = 'all'">
+      All <span>{{ countFor('all') }}</span>
+    </button>
+    <button type="button" [class.active]="filter === 'payment'" (click)="filter = 'payment'">
+      Awaiting payment <span>{{ countFor('payment') }}</span>
+    </button>
+    <button type="button" [class.active]="filter === 'preparing'" (click)="filter = 'preparing'">
+      Preparing <span>{{ countFor('preparing') }}</span>
+    </button>
+    <button type="button" [class.active]="filter === 'ready'" (click)="filter = 'ready'">
+      Ready <span>{{ countFor('ready') }}</span>
+    </button>
+    <button type="button" [class.active]="filter === 'completed'" (click)="filter = 'completed'">
+      Completed <span>{{ countFor('completed') }}</span>
+    </button>
+  </nav>
+
+  <p class="empty-state" *ngIf="loading">Loading orders…</p>
+  <p class="empty-state" *ngIf="!loading && !filteredOrders.length">
+    No orders in this view yet.
+  </p>
+
+  <section class="order-list" aria-label="Orders">
+    <article class="order-card" *ngFor="let order of filteredOrders">
+      <header class="order-card-header">
+        <div>
+          <p class="order-reference">ORDER {{ order.id | slice:0:8 | uppercase }}</p>
+          <h2>Table {{ order.tableNumber }}</h2>
+          <p class="order-time">{{ order.createdAtUtc | date:'medium' }}</p>
+        </div>
+        <span class="status-badge" [ngClass]="statusClass(order)">
+          {{ order.orderStatus }}
+        </span>
+      </header>
+
+      <ul class="order-items">
+        <li *ngFor="let item of order.items">
+          <span><b>{{ item.quantity }}×</b> {{ item.itemName }}</span>
+          <span>{{ item.lineTotal | currency:'GBP' }}</span>
+        </li>
+      </ul>
+
+      <footer class="order-card-footer">
+        <div class="order-payment">
+          <span>{{ order.paymentMethod === 'counter' ? 'Pay at counter' : 'Online payment' }}</span>
+          <strong [class.paid]="order.paymentStatus === 'Paid'">{{ order.paymentStatus }}</strong>
+        </div>
+        <strong class="order-total">{{ order.total | currency:'GBP' }}</strong>
+      </footer>
+
+      <p class="online-notice" *ngIf="isAwaitingOnlinePayment(order)">
+        Online checkout is not configured. Do not prepare this unpaid order.
+      </p>
+      <button
+        class="action-button"
+        *ngIf="nextAction(order) as action"
+        type="button"
+        [disabled]="updatingOrderId !== null"
+        (click)="performNextAction(order)">
+        {{ updatingOrderId === order.id ? 'Updating…' : action }}
+      </button>
+    </article>
+  </section>
+</main>
