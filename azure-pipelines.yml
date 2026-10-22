@@ -1,8 +1,3 @@
-# ASP.NET Core
-# Build and test ASP.NET Core projects targeting .NET Core.
-# Add steps that run tests, create a NuGet package, deploy, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
-
 trigger:
 - main
 
@@ -11,7 +6,42 @@ pool:
 
 variables:
   buildConfiguration: 'Release'
+  projectPath: 'backend/PizzaShop.Api/PizzaShop.Api.csproj'
+  azureServiceConnection: 'PizzaShop-Azure-Connection'
+  appServiceName: 'your-api-app-service-name'
 
 steps:
-- script: dotnet build --configuration $(buildConfiguration)
-  displayName: 'dotnet build $(buildConfiguration)'
+- task: UseDotNet@2
+  displayName: 'Install .NET 8 SDK'
+  inputs:
+    packageType: 'sdk'
+    version: '8.0.x'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Restore'
+  inputs:
+    command: 'restore'
+    projects: '$(projectPath)'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Build'
+  inputs:
+    command: 'build'
+    projects: '$(projectPath)'
+    arguments: '--configuration $(buildConfiguration) --no-restore'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Publish'
+  inputs:
+    command: 'publish'
+    projects: '$(projectPath)'
+    arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)/publish --no-build'
+    zipAfterPublish: true
+
+- task: AzureWebApp@1
+  displayName: 'Deploy to Azure App Service'
+  inputs:
+    azureSubscription: '$(azureServiceConnection)'
+    appType: 'webAppLinux'
+    appName: '$(appServiceName)'
+    package: '$(Build.ArtifactStagingDirectory)/publish/*.zip'
