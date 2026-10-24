@@ -1,11 +1,11 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-COPY ["PizzaShop.Api/PizzaShop.Api.csproj", "PizzaShop.Api/"]
-RUN dotnet restore "PizzaShop.Api/PizzaShop.Api.csproj"
+COPY ["backend/PizzaShop.Api/PizzaShop.Api.csproj", "backend/PizzaShop.Api/"]
+RUN dotnet restore "backend/PizzaShop.Api/PizzaShop.Api.csproj"
 
-COPY PizzaShop.Api/ backend/PizzaShop.Api/
-RUN dotnet publish "PizzaShop.Api/PizzaShop.Api.csproj" \
+COPY backend/PizzaShop.Api/ backend/PizzaShop.Api/
+RUN dotnet publish "backend/PizzaShop.Api/PizzaShop.Api.csproj" \
     --configuration Release \
     --output /app/publish \
     --no-restore
