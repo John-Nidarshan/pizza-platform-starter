@@ -5,7 +5,8 @@ using PizzaShop.Api.Models;
 using System.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.WebHost.UseUrls("http://localhost:5080");
+var port = Environment.GetEnvironmentVariable("PORT") ?? "5080";
+builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
 builder.Services.AddEndpointsApiExplorer();
