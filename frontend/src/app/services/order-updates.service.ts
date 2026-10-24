@@ -6,6 +6,7 @@ import {
 } from '@microsoft/signalr';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { AdminOrder } from '../models/api.models';
+import { environment } from '../../environments/environment';
 
 export type OrderConnectionState =
   | 'connecting'
@@ -25,7 +26,7 @@ export class OrderUpdatesService {
 
   constructor() {
     this.connection = new HubConnectionBuilder()
-      .withUrl('/hubs/orders')
+      .withUrl(`${environment.apiBaseUrl}/hubs/orders`)
       .withAutomaticReconnect()
       .build();
 

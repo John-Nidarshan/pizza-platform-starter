@@ -6,22 +6,26 @@ import {
   CreateOrderRequest,
   CreateOrderResponse
 } from '../models/api.models';
+import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class OrderService {
   private readonly http = inject(HttpClient);
 
   createOrder(request: CreateOrderRequest): Observable<CreateOrderResponse> {
-    return this.http.post<CreateOrderResponse>('/api/orders', request);
+    return this.http.post<CreateOrderResponse>(
+      `${environment.apiBaseUrl}/api/orders`,
+      request
+    );
   }
 
   getOrders(): Observable<AdminOrder[]> {
-    return this.http.get<AdminOrder[]>('/api/orders');
+    return this.http.get<AdminOrder[]>(`${environment.apiBaseUrl}/api/orders`);
   }
 
   confirmCounterPayment(orderId: string): Observable<AdminOrder> {
     return this.http.post<AdminOrder>(
-      `/api/orders/${orderId}/confirm-payment`,
+      `${environment.apiBaseUrl}/api/orders/${orderId}/confirm-payment`,
       {}
     );
   }
@@ -30,6 +34,9 @@ export class OrderService {
     orderId: string,
     status: 'Ready' | 'Completed'
   ): Observable<AdminOrder> {
-    return this.http.put<AdminOrder>(`/api/orders/${orderId}/status`, { status });
+    return this.http.put<AdminOrder>(
+      `${environment.apiBaseUrl}/api/orders/${orderId}/status`,
+      { status }
+    );
   }
 }

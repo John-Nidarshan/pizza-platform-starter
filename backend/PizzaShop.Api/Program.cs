@@ -22,8 +22,11 @@ if (string.IsNullOrWhiteSpace(connectionString))
     throw new InvalidOperationException("Configure ConnectionStrings:PizzaShop using User Secrets or environment variables.");
 
 builder.Services.AddDbContext<PizzaShopDbContext>(options => options.UseSqlServer(connectionString));
+var allowedOrigins = builder.Configuration["CORS_ALLOWED_ORIGINS"]?
+    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+    ?? ["http://localhost:4200"];
 builder.Services.AddCors(options => options.AddPolicy("AngularFrontend", policy =>
-    policy.WithOrigins("http://localhost:4200").AllowAnyHeader().AllowAnyMethod().AllowCredentials()));
+    policy.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod().AllowCredentials()));
 
 var app = builder.Build();
 app.UseCors("AngularFrontend");

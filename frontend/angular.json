@@ -20,7 +20,16 @@
           },
           "configurations": {
             "development": { "sourceMap": true, "optimization": false },
-            "production": { "optimization": true, "outputHashing": "all" }
+            "production": {
+              "optimization": true,
+              "outputHashing": "all",
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.production.ts"
+                }
+              ]
+            }
           },
           "defaultConfiguration": "production"
         },
